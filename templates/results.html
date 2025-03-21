@@ -1,0 +1,14 @@
+<h1>{{ title }}</h1>
+
+{% if result %}
+    <h3>Résultats :</h3>
+    <ul>
+        {% for item in result %}
+            <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Aucun résultat trouvé.</p>
+{% endif %}
+
+<a href="/">Retour</a>

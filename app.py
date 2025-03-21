@@ -7,6 +7,9 @@ from routes.enumeration_routes import enumeration_bp
 app = Flask(__name__)
 app.config.from_object(Config)
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 # Enregistrer les routes API
 app.register_blueprint(scan_bp, url_prefix="/api/scan")

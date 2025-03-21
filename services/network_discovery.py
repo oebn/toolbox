@@ -6,7 +6,7 @@ def discover_network(network_range: str):
     """
     nm = nmap.PortScanner()
     print(f"🔍 Scanning network {network_range}...")
-    nm.scan(hosts=network_range, arguments="-sn")  # Scan sans port (découverte simple)
+    nm.scan(hosts=network_range, arguments="-sP")  # Scan sans port (découverte simple)
     
     active_hosts = []
     for host in nm.all_hosts():
