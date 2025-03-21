@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toolbox Cyber</title>
+</head>
+<body>
+    <h1>Toolbox Cyber - Testez vos modules</h1>
+    <form action="/api/discover/" method="post">
+        <h2>Découverte réseau</h2>
+        <input type="text" name="network" placeholder="192.168.1.0/24" required>
+        <button type="submit">Lancer</button>
+    </form>
+
+    <form action="/api/scan/" method="post">
+        <h2>Scan de ports</h2>
+        <input type="text" name="target" placeholder="IP cible" required>
+        <input type="text" name="ports" placeholder="Ports (ex: 22,80,443)" required>
+        <button type="submit">Lancer</button>
+    </form>
+
+    <form action="/api/enumerate/" method="post">
+        <h2>Énumération des services</h2>
+        <input type="text" name="target" placeholder="IP cible" required>
+        <input type="text" name="ports" placeholder="Ports (ex: 22,80,443)" required>
+        <button type="submit">Lancer</button>
+    </form>
+</body>
+</html>
