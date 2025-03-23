@@ -26,5 +26,14 @@
         <input type="text" name="ports" placeholder="Ports (ex: 22,80,443)" required>
         <button type="submit">Lancer</button>
     </form>
+
+    <form action="/api/nessus/" method="post">
+		<h2>Scan de vulnérabilités (Nessus)</h2>
+		<label for="target">Adresse IP :</label>
+		<input type="text" name="target" id="target" placeholder="Ex : 192.168.1.1" required>
+		<button type="submit">Lancer le scan</button>
+	</form>
+
+    
 </body>
 </html>
