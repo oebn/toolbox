@@ -4,6 +4,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toolbox Cyber</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            margin-top: 0;
+            color: #444;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status-ok {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-connecting {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        .status-message {
+            flex-grow: 1;
+        }
+        .status-refresh {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+        .templates-link {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .templates-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <h1>Toolbox Cyber - Testez vos modules</h1>
@@ -27,13 +116,141 @@
         <button type="submit">Lancer</button>
     </form>
 
-    <form action="/api/nessus/" method="post">
-		<h2>Scan de vulnérabilités (Nessus)</h2>
-		<label for="target">Adresse IP :</label>
-		<input type="text" name="target" id="target" placeholder="Ex : 192.168.1.1" required>
-		<button type="submit">Lancer le scan</button>
-	</form>
-
+    <form action="/api/nessus/scan" method="post" id="nessus-form">
+        <h2>Scan de vulnérabilités (Nessus)</h2>
+        
+        <!-- Indicateur de statut de l'API Nessus -->
+        <div id="nessus-status" class="status-indicator status-connecting">
+            <span class="status-icon" id="status-icon">🔄</span>
+            <span class="status-message" id="status-message">Vérification de la connexion...</span>
+            <button type="button" class="status-refresh" onclick="checkNessusStatus()">⟳</button>
+        </div>
+        
+        <label for="targets">Adresse IP :</label>
+        <input type="text" name="targets" id="targets" placeholder="Ex : 192.168.1.1" required>
+        <label for="name">Nom du scan (optionnel) :</label>
+        <input type="text" name="name" id="name" placeholder="Mon scan personnalisé">
+        
+        <!-- Sélection du template -->
+        <div>
+            <label for="template">Template (optionnel) :</label>
+            <select name="template" id="template-select" disabled>
+                <option value="">Chargement des templates...</option>
+            </select>
+            <a href="/api/nessus/templates" class="templates-link" target="_blank">Voir tous les templates disponibles</a>
+        </div>
+        
+        <button type="submit" id="submit-btn" disabled>Lancer le scan</button>
+    </form>
     
+    <script>
+        // Fonction pour vérifier le statut de l'API Nessus
+        function checkNessusStatus() {
+            const statusDiv = document.getElementById('nessus-status');
+            const statusIcon = document.getElementById('status-icon');
+            const statusMessage = document.getElementById('status-message');
+            const submitBtn = document.getElementById('submit-btn');
+            const templateSelect = document.getElementById('template-select');
+            
+            // Mettre à jour l'affichage pendant la vérification
+            statusDiv.className = 'status-indicator status-connecting';
+            statusIcon.textContent = '🔄';
+            statusMessage.textContent = 'Vérification de la connexion...';
+            
+            // Requête AJAX pour vérifier le statut
+            fetch('/api/nessus/status', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Mettre à jour l'indicateur en fonction du statut
+                if (data.status === '✅') {
+                    statusDiv.className = 'status-indicator status-ok';
+                    statusIcon.textContent = '✅';
+                    submitBtn.disabled = false;
+                    loadTemplates();
+                } else if (data.status === '❌') {
+                    statusDiv.className = 'status-indicator status-error';
+                    statusIcon.textContent = '❌';
+                    submitBtn.disabled = true;
+                    templateSelect.disabled = true;
+                } else if (data.status === '⚠️') {
+                    statusDiv.className = 'status-indicator status-warning';
+                    statusIcon.textContent = '⚠️';
+                    submitBtn.disabled = false;
+                    loadTemplates();
+                } else {
+                    statusDiv.className = 'status-indicator status-connecting';
+                    statusIcon.textContent = '🔄';
+                    submitBtn.disabled = true;
+                    templateSelect.disabled = true;
+                }
+                
+                // Afficher le message
+                statusMessage.textContent = data.message || 'Statut inconnu';
+            })
+            .catch(error => {
+                // En cas d'erreur
+                statusDiv.className = 'status-indicator status-error';
+                statusIcon.textContent = '❌';
+                statusMessage.textContent = 'Impossible de contacter le serveur';
+                submitBtn.disabled = true;
+                templateSelect.disabled = true;
+                console.error('Erreur:', error);
+            });
+        }
+        
+        // Fonction pour charger les templates disponibles
+        function loadTemplates() {
+            const templateSelect = document.getElementById('template-select');
+            
+            // Requête AJAX pour obtenir les templates
+            fetch('/api/nessus/templates', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Vider le select
+                templateSelect.innerHTML = '';
+                
+                // Ajouter l'option par défaut
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Sélectionner un template (optionnel)';
+                templateSelect.appendChild(defaultOption);
+                
+                // Ajouter les templates
+                if (data.templates && data.templates.length > 0) {
+                    data.templates.forEach(template => {
+                        const option = document.createElement('option');
+                        option.value = template.uuid;
+                        option.textContent = template.name;
+                        templateSelect.appendChild(option);
+                    });
+                    templateSelect.disabled = false;
+                } else {
+                    const noTemplateOption = document.createElement('option');
+                    noTemplateOption.value = '';
+                    noTemplateOption.textContent = 'Aucun template disponible';
+                    templateSelect.appendChild(noTemplateOption);
+                    templateSelect.disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors du chargement des templates:', error);
+                templateSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+                templateSelect.disabled = true;
+            });
+        }
+        
+        // Vérifier le statut au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkNessusStatus();
+        });
+    </script>
 </body>
 </html>
