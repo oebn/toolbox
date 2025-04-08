@@ -33,6 +33,7 @@ fi
 echo "📦 Installation des dépendances système pour le sniffing réseau avec Scapy..."
 sudo apt update
 sudo apt install -y tcpdump libpcap-dev
+sudo apt-get install tshark
 
 
 # Installer les dépendances Python
