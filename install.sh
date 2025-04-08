@@ -28,6 +28,13 @@ else
     source venv/bin/activate
 fi
 
+# Installer les dépendances systèmes nécessaires à Scapy
+
+echo "📦 Installation des dépendances système pour le sniffing réseau avec Scapy..."
+sudo apt update
+sudo apt install -y tcpdump libpcap-dev
+
+
 # Installer les dépendances Python
 echo "📜 Installation des paquets Python..."
 pip install -r requirements.txt

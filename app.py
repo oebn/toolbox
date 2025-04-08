@@ -5,7 +5,7 @@ from config import Config
 from routes.scan_routes import scan_bp
 from routes.discovery_routes import discovery_bp
 from routes.enumeration_routes import enumeration_bp
-from routes.nessus_routes import nessus_bp
+from routes.sniffer_routes import sniffer_bp
 from dotenv import load_dotenv
 import logging
 
@@ -30,7 +30,7 @@ def create_app():
     app.register_blueprint(scan_bp, url_prefix="/api/scan")
     app.register_blueprint(discovery_bp, url_prefix="/api/discover")
     app.register_blueprint(enumeration_bp, url_prefix="/api/enumerate")
-    app.register_blueprint(nessus_bp, url_prefix="/api/nessus")
+    app.register_blueprint(sniffer_bp, url_prefix="/api/sniffer")
     
     # Route pour afficher l'interface web
     @app.route("/")
