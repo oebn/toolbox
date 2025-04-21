@@ -35,6 +35,12 @@ sudo apt update
 sudo apt install -y tcpdump libpcap-dev
 sudo apt-get install tshark
 
+# Installation Hydra
+
+echo "📦 Installation d'Hydra pour brute-force..."
+sudo apt update
+sudo apt install -y hydra
+
 
 # Installer les dépendances Python
 echo "📜 Installation des paquets Python..."

@@ -7,6 +7,7 @@ from routes.discovery_routes import discovery_bp
 from routes.enumeration_routes import enumeration_bp
 from routes.sniffer_routes import sniffer_bp
 from dotenv import load_dotenv
+from routes.hydra_routes import hydra_bp
 import logging
 
 # Chargement des variables d'environnement
@@ -31,6 +32,7 @@ def create_app():
     app.register_blueprint(discovery_bp, url_prefix="/api/discover")
     app.register_blueprint(enumeration_bp, url_prefix="/api/enumerate")
     app.register_blueprint(sniffer_bp, url_prefix="/api/sniffer")
+    app.register_blueprint(hydra_bp, url_prefix="/api/hydra")
     
     # Route pour afficher l'interface web
     @app.route("/")
