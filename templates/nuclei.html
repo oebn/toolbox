@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toolbox Cyber - Nuclei</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/" class="home-link">Toolbox Cyber</a>
+            <div class="nav-links">
+                <a href="/network">Découverte</a>
+                <a href="/portscan">Scan</a>
+                <a href="/enumerate">Énumération</a>
+                <a href="/sniffer">Capture</a>
+                <a href="/hydra">Hydra</a>
+                <a href="/nuclei" class="active">Nuclei</a>
+            </div>
+        </nav>
+    </header>
+    
+    <h1>Scan de vulnérabilités avec Nuclei</h1>
+    <p>Utilisez cet outil pour détecter automatiquement les vulnérabilités dans vos applications web et services.</p>
+    
+    <form action="/api/vuln/nuclei/scan" method="post" id="nuclei-form">
+        <div class="form-group">
+            <label for="nuclei-target">Cible (URL ou IP):</label>
+            <input type="text" name="target" id="nuclei-target" class="form-control" placeholder="https://example.com" required>
+            <small>Format: URL complète avec protocole (ex: https://example.com)</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="nuclei-template">Template:</label>
+            <select name="template" id="nuclei-template" class="form-control">
+                <option value="">Chargement des templates...</option>
+            </select>
+            <small>Sélectionnez les templates de vulnérabilités à scanner</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="nuclei-severity">Sévérité:</label>
+            <select name="severity" id="nuclei-severity" class="form-control">
+                <option value="">Toutes les sévérités</option>
+                <option value="critical">Critique uniquement</option>
+                <option value="critical,high">Critique et élevée</option>
+                <option value="critical,high,medium">Critique, élevée et moyenne</option>
+                <option value="info">Informative uniquement</option>
+            </select>
+            <small>Filtrer les résultats par niveau de sévérité</small>
+        </div>
+        
+        <div class="advanced-options-toggle">
+            <a href="#" id="toggle-nuclei-options">Options avancées</a>
+        </div>
+        
+        <div id="nuclei-advanced-options" style="display: none; border: 1px solid #ccc; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+            <h3>Options avancées</h3>
+            
+            <div class="form-group">
+                <label for="nuclei-rate-limit">Limite de requêtes/seconde:</label>
+                <input type="number" name="rate_limit" id="nuclei-rate-limit" class="form-control" value="150" min="1" max="500">
+                <small>Nombre maximum de requêtes par seconde (1-500)</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="nuclei-timeout">Timeout (en secondes):</label>
+                <input type="number" name="timeout" id="nuclei-timeout" class="form-control" value="5" min="1" max="60">
+                <small>Délai maximum d'attente pour une requête</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="nuclei-retries">Tentatives:</label>
+                <input type="number" name="retries" id="nuclei-retries" class="form-control" value="1" min="0" max="5">
+                <small>Nombre de tentatives en cas d'échec</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="nuclei-tags">Tags (séparés par des virgules):</label>
+                <input type="text" name="tags" id="nuclei-tags" class="form-control" placeholder="cve,rce,wordpress">
+                <small>Filtrer les templates par tags spécifiques</small>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" id="start-nuclei-btn" class="btn">Lancer le scan</button>
+            <a href="/api/vuln/nuclei/reports" class="btn-secondary" style="margin-left: 10px; text-decoration: none; display: inline-block; padding: 10px 15px;">Voir les rapports précédents</a>
+        </div>
+    </form>
+    
+    <div id="scan-result"></div>
+    
+    <footer>
+        <p>Toolbox Cyber &copy; 2025 - Outil de formation et de test uniquement</p>
+    </footer>
+    
+    <script src="/static/js/nuclei.js"></script>
+</body>
+</html>

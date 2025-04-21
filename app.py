@@ -1,5 +1,5 @@
 # app.py - Version améliorée
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 import os
 from config import Config
 from routes.scan_routes import scan_bp
@@ -8,6 +8,7 @@ from routes.enumeration_routes import enumeration_bp
 from routes.sniffer_routes import sniffer_bp
 from dotenv import load_dotenv
 from routes.hydra_routes import hydra_bp
+from routes.nuclei_routes import nuclei_bp
 import logging
 
 # Chargement des variables d'environnement
@@ -33,12 +34,45 @@ def create_app():
     app.register_blueprint(enumeration_bp, url_prefix="/api/enumerate")
     app.register_blueprint(sniffer_bp, url_prefix="/api/sniffer")
     app.register_blueprint(hydra_bp, url_prefix="/api/hydra")
+    app.register_blueprint(nuclei_bp, url_prefix='/api/vuln/nuclei')
     
-    # Route pour afficher l'interface web
+    # Routes pour l'interface web
     @app.route("/")
     def home():
         return render_template("index.html")
         
+    @app.route("/network")
+    def network_page():
+        return render_template("network.html")
+        
+    @app.route("/portscan")
+    def portscan_page():
+        return render_template("portscan.html")
+        
+    @app.route("/enumerate")
+    def enumerate_page():
+        return render_template("enumerate.html")
+        
+    @app.route("/sniffer")
+    def sniffer_page():
+        return render_template("sniffer.html")
+        
+    @app.route("/hydra")
+    def hydra_page():
+        return render_template("hydra.html")
+        
+    @app.route("/nuclei")
+    def nuclei_page():
+        return render_template("nuclei.html")
+        
+    @app.route("/nuclei/reports")
+    def nuclei_reports_page():
+        return render_template("nuclei_reports.html")
+        
+    @app.route("/results")
+    def results_page():
+        return redirect("/")
+    
     return app
 
 if __name__ == "__main__":
