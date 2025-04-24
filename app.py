@@ -8,7 +8,7 @@ from routes.enumeration_routes import enumeration_bp
 from routes.sniffer_routes import sniffer_bp
 from dotenv import load_dotenv
 from routes.hydra_routes import hydra_bp
-from routes.nuclei_routes import nuclei_bp
+from routes.vuln_routes import vuln_bp
 import logging
 
 # Chargement des variables d'environnement
@@ -34,7 +34,7 @@ def create_app():
     app.register_blueprint(enumeration_bp, url_prefix="/api/enumerate")
     app.register_blueprint(sniffer_bp, url_prefix="/api/sniffer")
     app.register_blueprint(hydra_bp, url_prefix="/api/hydra")
-    app.register_blueprint(nuclei_bp, url_prefix='/api/vuln/nuclei')
+    app.register_blueprint(vuln_bp, url_prefix='/api/vuln')
     
     # Routes pour l'interface web
     @app.route("/")
@@ -61,14 +61,10 @@ def create_app():
     def hydra_page():
         return render_template("hydra.html")
         
-    @app.route("/nuclei")
-    def nuclei_page():
-        return render_template("nuclei.html")
-        
-    @app.route("/nuclei/reports")
-    def nuclei_reports_page():
-        return render_template("nuclei_reports.html")
-        
+    @app.route("/vuln")
+    def vuln_page():
+       return render_template("vuln.html")
+              
     @app.route("/results")
     def results_page():
         return redirect("/")
