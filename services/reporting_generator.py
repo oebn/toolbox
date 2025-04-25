@@ -27,6 +27,8 @@ def generate_report(module_name, scan_results, template_name="report_template.ht
     # Choisir le bon template en fonction du module
     if module_name == "vuln_scan":
         template_name = "vuln_report_template.html"
+    elif module_name == "sniffer":
+        template_name = "sniffer_report_template.html"
     
     template = env.get_template(template_name)
     
@@ -57,7 +59,8 @@ def get_module_title(module_name):
         "vuln_scan": "Scan de Vulnérabilités Nmap",
         "network_discovery": "Découverte Réseau",
         "port_scan": "Scan de Ports",
-        "service_enumeration": "Énumération des Services"
+        "service_enumeration": "Énumération des Services",
+        "sniffer": "Capture Réseau"
     }
     return titles.get(module_name, module_name)
 
@@ -75,6 +78,12 @@ def get_scan_stats(scan_results):
         
         if "target" in scan_results:
             stats["target"] = scan_results["target"]
+            
+        # Pour les captures réseau
+        if "total_packets" in scan_results:
+            stats["total_packets"] = scan_results["total_packets"]
+            stats["protocols"] = scan_results.get("protocols", {})
+            stats["conversations"] = scan_results.get("conversations", [])
     
     return stats
 
@@ -106,3 +115,11 @@ def generate_vuln_report(scan_results):
     
     # Générer le rapport
     return generate_report("vuln_scan", scan_results)
+
+def generate_sniffer_report(scan_results):
+    """Fonction spécifique pour générer un rapport de capture réseau"""
+    # Assurez-vous que le dossier existe
+    os.makedirs(REPORTS_DIR, exist_ok=True)
+    
+    # Générer le rapport
+    return generate_report("sniffer", scan_results)

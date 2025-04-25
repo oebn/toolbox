@@ -1,6 +1,7 @@
 # app.py - Version améliorée
 from flask import Flask, render_template, redirect, send_file
 import os
+import datetime
 from config import Config
 from routes.scan_routes import scan_bp
 from routes.discovery_routes import discovery_bp
@@ -74,6 +75,28 @@ def create_app():
     @app.route("/results")
     def results_page():
         return redirect("/")
+    
+    @app.route("/reports")
+    def reports_page():
+        """Affiche la liste des rapports générés"""
+        reports = []
+        reports_dir = "generated_reports"
+        
+        if os.path.exists(reports_dir):
+            for filename in os.listdir(reports_dir):
+                if filename.endswith('.html'):
+                    file_path = os.path.join(reports_dir, filename)
+                    stats = os.stat(file_path)
+                    reports.append({
+                        "name": filename,
+                        "date": datetime.datetime.fromtimestamp(stats.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+                        "size": f"{stats.st_size / 1024:.1f} KB"
+                    })
+        
+        # Trier par date décroissante
+        reports.sort(key=lambda x: x["date"], reverse=True)
+        
+        return render_template("reports.html", reports=reports)
         
     @app.route("/api/report/download/<path:filename>")
     def download_report(filename):
@@ -83,6 +106,15 @@ def create_app():
         if not os.path.exists(report_path):
             return "Fichier non trouvé", 404
         return send_file(report_path, as_attachment=True)
+    
+    @app.route("/api/report/view/<path:filename>")
+    def view_report(filename):
+        """Affiche un rapport dans le navigateur"""
+        # Vérifier que le fichier existe
+        report_path = os.path.join("generated_reports", filename)
+        if not os.path.exists(report_path):
+            return "Fichier non trouvé", 404
+        return send_file(report_path)
     
     return app
 
