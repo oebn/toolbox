@@ -1,5 +1,5 @@
 # app.py - Version améliorée
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, send_file
 import os
 from config import Config
 from routes.scan_routes import scan_bp
@@ -27,6 +27,12 @@ def create_app():
     """Crée et configure l'application Flask"""
     app = Flask(__name__)
     app.config.from_object(Config)
+    
+    # Ajout du filtre personnalisé basename
+    @app.template_filter('basename')
+    def basename_filter(path):
+        """Extrait le nom de fichier d'un chemin complet"""
+        return os.path.basename(path)
     
     # Enregistrer les routes API
     app.register_blueprint(scan_bp, url_prefix="/api/scan")
@@ -68,6 +74,15 @@ def create_app():
     @app.route("/results")
     def results_page():
         return redirect("/")
+        
+    @app.route("/api/report/download/<path:filename>")
+    def download_report(filename):
+        """Télécharge un rapport généré"""
+        # Vérifier que le fichier existe
+        report_path = os.path.join("generated_reports", filename)
+        if not os.path.exists(report_path):
+            return "Fichier non trouvé", 404
+        return send_file(report_path, as_attachment=True)
     
     return app
 
