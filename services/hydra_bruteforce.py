@@ -1,14 +1,10 @@
 import subprocess
 import os
-import logging
 from datetime import datetime
+from utils.logger import get_logger
 
-# Configuration du logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("hydra_bruteforce")
+# Configuration du logger
+logger = get_logger('hydra_bruteforce')
 
 # Répertoire pour stocker les fichiers temporaires de wordlists
 WORDLISTS_DIR = "wordlists"
@@ -20,9 +16,12 @@ def get_available_wordlists():
     Returns:
         dict: Dictionnaires contenant les listes d'utilisateurs et de mots de passe
     """
+    logger.info("Récupération des wordlists disponibles")
+    
     # Créer le dossier s'il n'existe pas
     if not os.path.exists(WORDLISTS_DIR):
         os.makedirs(WORDLISTS_DIR)
+        logger.debug(f"Création du dossier {WORDLISTS_DIR}")
     
     # Chemins par défaut pour Kali Linux
     common_paths = [
@@ -37,6 +36,7 @@ def get_available_wordlists():
     # Parcourir les chemins communs
     for path in common_paths:
         if os.path.exists(path):
+            logger.debug(f"Exploration du chemin: {path}")
             for root, _, files in os.walk(path):
                 for file in files:
                     full_path = os.path.join(root, file)
@@ -48,19 +48,26 @@ def get_available_wordlists():
                             user_lists.append({"name": file, "path": full_path})
                             # Et aussi aux listes de mots de passe
                             pass_lists.append({"name": file, "path": full_path})
+                            logger.debug(f"Ajout de {file} aux listes utilisateurs et mots de passe")
                         else:
                             # Pour les autres chemins, garder le comportement original
                             if "user" in file.lower() or "login" in file.lower():
                                 user_lists.append({"name": file, "path": full_path})
+                                logger.debug(f"Ajout de {file} à la liste des utilisateurs")
                             elif "pass" in file.lower() or "pwd" in file.lower() or "dict" in file.lower():
                                 pass_lists.append({"name": file, "path": full_path})
+                                logger.debug(f"Ajout de {file} à la liste des mots de passe")
     
     # Ajouter les wordlists communes si elles existent
     if os.path.exists("/usr/share/wordlists/rockyou.txt"):
         pass_lists.append({"name": "rockyou.txt", "path": "/usr/share/wordlists/rockyou.txt"})
+        logger.debug("Ajout de rockyou.txt")
     
     if os.path.exists("/etc/passwd"):
         user_lists.append({"name": "system-users", "path": "/etc/passwd"})
+        logger.debug("Ajout des utilisateurs système")
+    
+    logger.info(f"Trouvé {len(user_lists)} listes d'utilisateurs et {len(pass_lists)} listes de mots de passe")
     
     return {
         "user_lists": sorted(user_lists, key=lambda x: x["name"]),
@@ -78,20 +85,27 @@ def create_custom_wordlist(content, list_type="userlist"):
     Returns:
         str: Chemin vers le fichier de wordlist créé
     """
+    logger.info(f"Création d'une wordlist personnalisée de type {list_type}")
+    
     # Créer le dossier s'il n'existe pas
     if not os.path.exists(WORDLISTS_DIR):
         os.makedirs(WORDLISTS_DIR)
+        logger.debug(f"Création du dossier {WORDLISTS_DIR}")
     
     # Générer un nom de fichier unique
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{WORDLISTS_DIR}/{list_type}_{timestamp}.txt"
     
-    # Écrire le contenu dans le fichier
-    with open(filename, "w") as f:
-        f.write(content)
-    
-    logger.info(f"Wordlist personnalisée créée: {filename}")
-    return filename
+    try:
+        # Écrire le contenu dans le fichier
+        with open(filename, "w") as f:
+            f.write(content)
+        
+        logger.info(f"Wordlist personnalisée créée: {filename}")
+        return filename
+    except Exception as e:
+        logger.error(f"Erreur lors de la création de la wordlist: {e}", exc_info=True)
+        raise
 
 def get_services():
     """
@@ -100,6 +114,8 @@ def get_services():
     Returns:
         list: Liste des services supportés
     """
+    logger.debug("Récupération de la liste des services Hydra")
+    
     # Services couramment utilisés avec Hydra
     common_services = [
         {"name": "ssh", "port": 22, "description": "Secure Shell"},
@@ -136,11 +152,15 @@ def run_hydra(target_ip, service, userlist, passlist, options=None):
     Returns:
         dict: Résultats de l'attaque
     """
+    logger.info(f"Lancement de l'attaque Hydra sur {target_ip} - Service: {service}")
+    
     # Vérifier que les fichiers existent
     if not os.path.exists(userlist):
+        logger.error(f"Liste d'utilisateurs introuvable: {userlist}")
         return {"error": f"Liste d'utilisateurs introuvable: {userlist}"}
     
     if not os.path.exists(passlist):
+        logger.error(f"Liste de mots de passe introuvable: {passlist}")
         return {"error": f"Liste de mots de passe introuvable: {passlist}"}
     
     # Options par défaut
@@ -178,7 +198,7 @@ def run_hydra(target_ip, service, userlist, passlist, options=None):
         command.append(service)
     
     try:
-        logger.info(f"Lancement de Hydra: {' '.join(command)}")
+        logger.info(f"Commande Hydra: {' '.join(command)}")
         
         # Exécuter la commande
         process = subprocess.run(command, capture_output=True, text=True, timeout=600)
@@ -190,6 +210,12 @@ def run_hydra(target_ip, service, userlist, passlist, options=None):
             for line in process.stdout.splitlines():
                 if "host:" in line and "login:" in line and "password:" in line:
                     credentials.append(line.strip())
+                    logger.info(f"Credentials trouvés: {line.strip()}")
+            
+            if credentials:
+                logger.info(f"Attaque réussie: {len(credentials)} credential(s) trouvé(s)")
+            else:
+                logger.info("Attaque terminée sans trouver de credentials")
             
             return {
                 "success": True,
@@ -200,6 +226,7 @@ def run_hydra(target_ip, service, userlist, passlist, options=None):
             }
         else:
             # Si Hydra renvoie un code d'erreur
+            logger.error(f"Hydra a échoué avec le code {process.returncode}")
             return {
                 "success": False,
                 "error": f"Hydra a échoué avec le code {process.returncode}",
@@ -208,12 +235,14 @@ def run_hydra(target_ip, service, userlist, passlist, options=None):
                 "command": " ".join(command)
             }
     except subprocess.TimeoutExpired:
+        logger.error("Délai d'exécution dépassé (10 minutes)")
         return {
             "success": False,
             "error": "Délai d'exécution dépassé (10 minutes)",
             "command": " ".join(command)
         }
     except Exception as e:
+        logger.error(f"Erreur d'exécution : {str(e)}", exc_info=True)
         return {
             "success": False,
             "error": f"Erreur d'exécution : {str(e)}",

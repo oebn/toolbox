@@ -1,0 +1,10 @@
+2025-04-26 18:05:18,324 - nmap_vulnscan - INFO - [nmap_vulnscan.py:22] - Démarrage du scan de vulnérabilités sur http://192.168.217.139/
+2025-04-26 18:05:18,355 - nmap_vulnscan - INFO - [nmap_vulnscan.py:29] - Exécution de nmap avec arguments: --script vuln -p 80
+2025-04-26 18:05:28,689 - nmap_vulnscan - WARNING - [nmap_vulnscan.py:69] - Hôte http://192.168.217.139/ non scanné ou hors ligne
+2025-04-26 18:05:53,385 - nmap_vulnscan - INFO - [nmap_vulnscan.py:22] - Démarrage du scan de vulnérabilités sur 192.168.217.139
+2025-04-26 18:05:53,406 - nmap_vulnscan - INFO - [nmap_vulnscan.py:29] - Exécution de nmap avec arguments: --script vuln -p 80,443,8080,8443,8000,8888
+2025-04-26 18:11:15,807 - nmap_vulnscan - INFO - [nmap_vulnscan.py:64] - Vulnérabilité trouvée sur port 443: ssl-poodle
+2025-04-26 18:11:15,810 - nmap_vulnscan - INFO - [nmap_vulnscan.py:64] - Vulnérabilité trouvée sur port 443: http-vuln-cve2014-3704
+2025-04-26 18:11:15,811 - nmap_vulnscan - INFO - [nmap_vulnscan.py:64] - Vulnérabilité trouvée sur port 443: ssl-dh-params
+2025-04-26 18:11:15,811 - nmap_vulnscan - INFO - [nmap_vulnscan.py:64] - Vulnérabilité trouvée sur port 443: ssl-ccs-injection
+2025-04-26 18:11:15,811 - nmap_vulnscan - INFO - [nmap_vulnscan.py:66] - Scan terminé: 4 vulnérabilité(s) trouvée(s) sur 192.168.217.139

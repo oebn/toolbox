@@ -1,21 +1,18 @@
 from datetime import datetime
 import os
 import subprocess
-import logging
 import json
 import tempfile
+from utils.logger import get_logger
 
-# Configuration du logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("packet_sniffer")
+# Configuration du logger
+logger = get_logger('packet_sniffer')
 
 CAPTURE_DIR = "captures"
 
 def get_interfaces():
     """Récupère la liste des interfaces réseau disponibles"""
+    logger.info("Récupération des interfaces réseau")
     try:
         # Utiliser la commande ip pour lister les interfaces
         result = subprocess.run(["ip", "link", "show"], capture_output=True, text=True)
@@ -39,10 +36,12 @@ def get_interfaces():
                         "mac": "",
                         "ip": ""
                     })
+                    logger.debug(f"Interface trouvée: {iface_name}")
         
+        logger.info(f"{len(interfaces)} interfaces trouvées")
         return interfaces
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération des interfaces: {e}")
+        logger.error(f"Erreur lors de la récupération des interfaces: {e}", exc_info=True)
         return []
 
 def capture_packets(interface="eth0", packet_count=100):
@@ -56,15 +55,16 @@ def capture_packets(interface="eth0", packet_count=100):
     Returns:
         str: Chemin vers le fichier pcap généré
     """
+    logger.info(f"Démarrage de la capture sur {interface} - {packet_count} paquets")
+    
     # Créer le répertoire de captures s'il n'existe pas
     if not os.path.exists(CAPTURE_DIR):
         os.makedirs(CAPTURE_DIR)
+        logger.debug(f"Création du dossier {CAPTURE_DIR}")
 
     # Générer un nom de fichier unique avec timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     pcap_filename = f"{CAPTURE_DIR}/capture_{timestamp}.pcap"
-
-    logger.info(f"Démarrage de la capture sur {interface}...")
     
     try:
         # Capturer les paquets réseau
@@ -76,7 +76,7 @@ def capture_packets(interface="eth0", packet_count=100):
         logger.info(f"Capture enregistrée : {pcap_filename} ({len(packets)} paquets)")
         return pcap_filename
     except Exception as e:
-        logger.error(f"Erreur lors de la capture : {e}")
+        logger.error(f"Erreur lors de la capture : {e}", exc_info=True)
         raise
 
 def analyze_pcap(pcap_file):
@@ -89,13 +89,15 @@ def analyze_pcap(pcap_file):
     Returns:
         dict: Informations extraites du fichier pcap
     """
+    logger.info(f"Début de l'analyse du fichier pcap: {pcap_file}")
+    
     if not os.path.exists(pcap_file):
         logger.error(f"Fichier pcap introuvable: {pcap_file}")
         raise FileNotFoundError(f"Fichier pcap introuvable: {pcap_file}")
         
     try:
         # Utiliser tshark (wireshark en ligne de commande) pour analyser le pcap
-        logger.info(f"Analyse du fichier pcap: {pcap_file}")
+        logger.debug("Extraction des statistiques générales")
         
         # Extraire les statistiques générales
         stats_cmd = [
@@ -107,6 +109,7 @@ def analyze_pcap(pcap_file):
         stats_result = subprocess.run(stats_cmd, capture_output=True, text=True)
         
         # Extraire les protocoles utilisés
+        logger.debug("Extraction des protocoles")
         protocols_cmd = [
             "tshark", "-r", pcap_file, 
             "-T", "fields", "-e", "frame.protocols"
@@ -114,6 +117,7 @@ def analyze_pcap(pcap_file):
         protocols_result = subprocess.run(protocols_cmd, capture_output=True, text=True)
         
         # Extraire les informations de base sur chaque paquet
+        logger.debug("Extraction des informations de paquets")
         packets_cmd = [
             "tshark", "-r", pcap_file, 
             "-T", "fields", 
@@ -125,6 +129,7 @@ def analyze_pcap(pcap_file):
         packets_result = subprocess.run(packets_cmd, capture_output=True, text=True)
         
         # Extraire les ports utilisés
+        logger.debug("Extraction des ports")
         ports_cmd = [
             "tshark", "-r", pcap_file, 
             "-T", "fields", 
@@ -217,11 +222,12 @@ def analyze_pcap(pcap_file):
             "capture_duration": stats_result.stdout
         }
         
-        logger.info(f"Analyse terminée: {len(packets)} paquets trouvés")
+        logger.info(f"Analyse terminée: {len(packets)} paquets analysés, {len(ip_addresses)} IPs uniques")
+        logger.debug(f"Protocoles trouvés: {protocols}")
         return analysis_result
         
     except Exception as e:
-        logger.error(f"Erreur lors de l'analyse du fichier pcap: {e}")
+        logger.error(f"Erreur lors de l'analyse du fichier pcap: {e}", exc_info=True)
         # En cas d'erreur, retourner une analyse basique
         return {
             "file": pcap_file,
@@ -234,6 +240,7 @@ def analyze_pcap(pcap_file):
 try:
     from scapy.all import sniff, wrpcap
     USE_SCAPY = True
+    logger.info("Scapy est disponible - utilisation pour la capture")
 except ImportError:
     USE_SCAPY = False
     logger.warning("Scapy n'est pas installé. Utilisation de TCPDump comme alternative.")
@@ -249,15 +256,16 @@ except ImportError:
         Returns:
             str: Chemin vers le fichier pcap généré
         """
+        logger.info(f"Démarrage de la capture TCPDump sur {interface} - {packet_count} paquets")
+        
         # Créer le répertoire de captures s'il n'existe pas
         if not os.path.exists(CAPTURE_DIR):
             os.makedirs(CAPTURE_DIR)
+            logger.debug(f"Création du dossier {CAPTURE_DIR}")
 
         # Générer un nom de fichier unique avec timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         pcap_filename = f"{CAPTURE_DIR}/capture_{timestamp}.pcap"
-
-        logger.info(f"Démarrage de la capture sur {interface}...")
         
         try:
             # Utiliser tcpdump pour la capture
@@ -278,11 +286,12 @@ except ImportError:
             logger.info(f"Capture enregistrée : {pcap_filename}")
             return pcap_filename
         except Exception as e:
-            logger.error(f"Erreur lors de la capture : {e}")
+            logger.error(f"Erreur lors de la capture : {e}", exc_info=True)
             raise
 
 if __name__ == "__main__":
     # Test de la fonction de capture
+    logger.info("Démarrage du test du module packet_sniffer")
     interfaces = get_interfaces()
     print("Interfaces disponibles :")
     for i, iface in enumerate(interfaces):
@@ -296,3 +305,5 @@ if __name__ == "__main__":
     analysis = analyze_pcap(capture_file)
     print("Résultats de l'analyse :")
     print(json.dumps(analysis, indent=2))
+    
+    logger.info("Test terminé")
