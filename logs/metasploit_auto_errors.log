@@ -1,0 +1,2 @@
+2025-05-08 17:41:59,969 - metasploit_auto - ERROR - [metasploit_auto.py:259] - Timeout lors de l'exécution de Metasploit pour ssl-ccs-injection sur 192.168.217.139:443
+2025-05-08 17:48:11,308 - metasploit_auto - ERROR - [metasploit_auto.py:259] - Timeout lors de l'exécution de Metasploit pour ssl-dh-params sur 192.168.217.139:443

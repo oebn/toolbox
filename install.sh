@@ -69,6 +69,12 @@ else
     echo "✅ Nuclei est déjà installé."
 fi
 
+# ---------------------------
+# Installation de Metasploit
+# ---------------------------
+echo "[+] Installation de Metasploit Framework..."
+sudo apt install -y metasploit-framework
+
 
 # Installer les dépendances Python
 echo "📜 Installation des paquets Python..."
